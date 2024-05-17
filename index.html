@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчет стоимости проекта</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.20.10/dist/css/uikit.min.css">
+    <style>
+      html {
+        background-color: #333;
+        color: #fff;
+      }
+    
+      .employee {
+        border: 1px solid #555;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+    
+      .uk-input {
+        background-color: #444;
+        color: #fff;
+        border-color: #555;
+      }
+    
+      .uk-button-danger {
+        background-color: #c0392b;
+      }
+    
+      .uk-button-primary {
+        background-color: #2980b9;
+      }
+    </style>
+</head>
+<body>
+    <div class="uk-container uk-margin">
+        <h1>Расчет стоимости проекта</h1>
+        <form>
+            <table class="uk-table">
+                <thead>
+                    <tr>
+                        <th>Сотрдуник</th>
+                        <th>Зарплата</th>
+                        <th>Налог+страх. взносы (43%)</th>
+                        <th>Количество рабочих дней</th>
+                        <th>Стоимость</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="employees-list">
+                    <!-- место для сборки списка сотрудников -->
+                </tbody>
+                <tfoot>
+                    <tr class="uk-text-large" >
+                        <td colspan="4">Общая стоимость проекта:</td>
+                        <td id="total-cost">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button class="uk-button uk-button-primary" id="add-employee">Добавить сотрудника</button>
+        </form>
+    </div>
+    <script>
+        const employeesList = document.getElementById('employees-list');
+        const totalCostElement = document.getElementById('total-cost');
+        let employees = [];
+
+        document.getElementById('add-employee').addEventListener('click', (e) => {
+            e.preventDefault();
+            addEmployee();
+        });
+
+        function addEmployee() {
+            const employee = {
+                salary: 50000,
+                tax: 43,
+                workingDays: 3,
+                cost: 10725
+            };
+            employees.push(employee);
+            renderEmployee(employee);
+            calculateTotalCost();
+        }
+
+        function renderEmployee(employee) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input class="uk-input" type="text" value="" placeholder="Имя сотрудника" id="employee-name"></td>
+                <td><input class="uk-input" type="number" value="${employee.salary}" placeholder="Зарплата" id="salary"></td>
+                <td><input class="uk-input" type="number" value="${employee.tax}" placeholder="Налог + страховые" id="tax"></td>
+                <td><input class="uk-input" type="number" value="${employee.workingDays}" placeholder="Количество рабочих дней" id="working-days"></td>
+                <td class="uk-text-large" id="employee-cost">${employee.cost}</td>
+                <td><button class="uk-button uk-button-danger" onclick="removeEmployee(this)">×</button></td>
+            `;
+        employeesList.appendChild(row);
+
+        const salaryInput = row.querySelector('#salary');
+        const taxInput = row.querySelector('#tax');
+        const workingDaysInput = row.querySelector('#working-days');
+
+        salaryInput.addEventListener('input', () => {
+            calculateEmployeeCost(row);
+        });
+
+        taxInput.addEventListener('input', () => {
+            calculateEmployeeCost(row);
+        });
+
+        workingDaysInput.addEventListener('input', () => {
+            calculateEmployeeCost(row);
+        });
+        }
+
+        function calculateEmployeeCost(row) {
+       	    const workingDaysMonth = 20    
+            const salary = parseFloat(row.querySelector('#salary').value);
+            const tax = parseFloat(row.querySelector('#tax').value);
+            const workingDays = parseFloat(row.querySelector('#working-days').value);
+
+            if (isNaN(salary) || isNaN(tax) || isNaN(workingDays)) return;
+
+            const cost = (salary / workingDaysMonth) * workingDays * (1 + tax / 100);
+            row.querySelector('#employee-cost').textContent = cost.toFixed(2);
+
+            calculateTotalCost();
+        }
+    
+        function calculateTotalCost() {
+            let totalCost = 0;
+            employeesList.querySelectorAll('tr').forEach((row) => {
+                totalCost += parseFloat(row.querySelector('#employee-cost').textContent);
+            });
+            totalCostElement.textContent = totalCost.toFixed(2);
+        }
+    
+        function removeEmployee(button) {
+            const row = button.parentNode.parentNode;
+            employeesList.removeChild(row);
+            const index = Array.prototype.indexOf.call(employeesList.children, row);
+            employees.splice(index, 1);
+            calculateTotalCost();
+        }
+    </script>
+</body>
+</html>
